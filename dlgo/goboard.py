@@ -84,12 +84,15 @@ class Board():
     def place_stone(self, player, point):
         assert self.is_on_grid(point)
         assert self._grid.get(point) is None
+
         adjacent_same_color = []
         adjacent_opposite_color = []
         liberties = []
+
         for neighbor in point.neighbors():
             if not self.is_on_grid(neighbor):
                 continue
+
             neighbor_string = self._grid.get(neighbor)
             if neighbor_string is None:
                 liberties.append(neighbor)
@@ -125,7 +128,8 @@ class Board():
 
 
 class GameState():
-    def __init__(self, board, next_player: Player, previous: "GameState", move: Move):
+    def __init__(self, board, next_player: Player, previous: "GameState",
+                 move: Move):
         self.board = board
         self.next_player: Player = next_player
         self.previous_state = previous
