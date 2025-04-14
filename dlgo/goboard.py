@@ -1,54 +1,59 @@
 import copy
-
-import typing as t
+import enum
 
 from dlgo import zobrist
-from dlgo.gotypes import Player
+from dlgo.gotypes import Player, Point
+
+
+class GameResult(enum.Enum):
+    win = 1
+    lose = 2
+    draw = 3
 
 
 class Move():
     def __init__(self, point=None, is_pass=False, is_resign=False):
         assert point is not None or is_pass or is_resign
-        self.point = point
-        self.is_play = (self.point is not None)
-        self.is_pass = is_pass
-        self.is_resign = is_resign
+        self.point: Point = point
+        self.is_play: bool = (self.point is not None)
+        self.is_pass: bool = is_pass
+        self.is_resign: bool = is_resign
 
     @classmethod
-    def play(cls, point):
+    def play(cls, point) -> "Move":
         return Move(point=point)
 
     @classmethod
-    def pass_turn(cls):
+    def pass_turn(cls) -> "Move":
         return Move(is_pass=True)
 
     @classmethod
-    def resign(cls):
+    def resign(cls) -> "Move":
         return Move(is_resign=True)
 
 
 class GoString():
-    def __init__(self, color, stones, liberties):
+    def __init__(self, color: Player, stones, liberties):
         self.color = color
         self.stones = frozenset(stones)
         self.liberties = frozenset(liberties)
 
-    def without_liberty(self, point):
+    def without_liberty(self, point: Point) -> "GoString":
         new_liberties = self.liberties - set([point])
         return GoString(self.color, self.stones, new_liberties)
 
-    def with_liberty(self, point):
+    def with_liberty(self, point: Point) -> "GoString":
         new_liberties = self.liberties | set([point])
         return GoString(self.color, self.stones, new_liberties)
 
-    def merged_with(self, go_string):
-        assert go_string.color == self.color
-        combined_stones = self.stones | go_string.stones
-        combined_liberties = self.liberties | go_string.liberties - combined_stones
+    def merged_with(self, other: "GoString") -> "GoString":
+        assert other.color == self.color
+        combined_stones = self.stones | other.stones
+        combined_liberties = self.liberties | other.liberties - combined_stones
         return GoString(self.color, combined_stones, combined_liberties)
 
     @property
-    def num_liberties(self):
+    def num_liberties(self) -> int:
         return len(self.liberties)
 
     def __eq__(self, other) -> bool:
@@ -59,7 +64,7 @@ class GoString():
 
 
 class Board():
-    def __init__(self, num_rows, num_cols):
+    def __init__(self, num_rows: int, num_cols: int):
         self.num_rows = num_rows
         self.num_cols = num_cols
         self._grid = {}
@@ -68,23 +73,23 @@ class Board():
     def zhash(self):
         return self._hash
 
-    def is_on_grid(self, point):
+    def is_on_grid(self, point) -> bool:
         return 1 <= point.row <= self.num_rows and \
             1 <= point.col <= self.num_cols
 
-    def get(self, point):
+    def get(self, point: Point) -> Player:
         string = self._grid.get(point)
         if string is None:
             return None
         return string.color
 
-    def get_go_string(self, point):
+    def get_go_string(self, point: Point) -> GoString:
         string = self._grid.get(point)
         if string is None:
             return None
         return string
 
-    def place_stone(self, player, point):
+    def place_stone(self, player: Player, point: Point):
         assert self.is_on_grid(point)
         assert self._grid.get(point) is None
 
