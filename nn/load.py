@@ -14,7 +14,7 @@ def shape_data(data):
 
 
 def load_data():
-    f = np.load('mnist.npz')
+    f = np.load('./data/mnist.npz')
     x_train, x_test = f['x_train'], f['x_test']
     y_train, y_test = f['y_train'], f['y_test']
     f.close()
